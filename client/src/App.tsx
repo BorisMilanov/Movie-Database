@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import SearchBar from "./components/SearchBar";
+import PrivateSearchBar from "./components/PrivateSearchBar";
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
       <Router>
         <Routes>
         <Route path="/search" element={<SearchBar />} />
+        <Route path="/privatesearch" element={<PrivateSearchBar />} />
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

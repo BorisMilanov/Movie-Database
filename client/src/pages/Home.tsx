@@ -15,6 +15,9 @@ const Home = () => {
         <Link to="/search">
           <button style={{ padding: "10px 20px", cursor: "pointer" }}>Search</button>
         </Link>
+        <Link to="/privatesearch">
+          <button style={{ padding: "10px 20px", cursor: "pointer" }}>PrSearch</button>
+        </Link>
       </div>
     </div>
   );
