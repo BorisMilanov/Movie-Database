@@ -12,6 +12,9 @@ const Home = () => {
         <Link to="/register">
           <button style={{ padding: "10px 20px", cursor: "pointer" }}>Register</button>
         </Link>
+        <Link to="/search">
+          <button style={{ padding: "10px 20px", cursor: "pointer" }}>Search</button>
+        </Link>
       </div>
     </div>
   );
