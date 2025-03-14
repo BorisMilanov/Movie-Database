@@ -1,6 +1,7 @@
-import { Navigate, useLocation } from "react-router-dom";
-import { JSX, useContext } from "react";
+import { Navigate } from "react-router-dom";
+import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { JSX } from "react/jsx-runtime";
 
 interface PrivateRouteProps {
   children: JSX.Element;
@@ -8,11 +9,9 @@ interface PrivateRouteProps {
 
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const auth = useContext(AuthContext);
-  const location = useLocation();
 
-  // Allow access to register page even if the user is not logged in
-  if (location.pathname === "/register") {
-    return children;
+  if (auth?.user === undefined) {
+    return <div>Loading...</div>; // Prevents flashing issues
   }
 
   return auth?.user ? children : <Navigate to="/login" />;

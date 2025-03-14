@@ -2,10 +2,11 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const authenticateToken = require("../middleware/authMiddleware"); // Middleware for authentication
 
 const router = express.Router();
 
-// Login Route
+// ✅ Login Route
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -26,26 +27,39 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// ✅ Register Route
 router.post("/register", async (req, res) => {
-    const { fullName, email, password } = req.body;
-  
-    try {
-      // Check if the user already exists
-      const existingUser = await User.findOne({ email });
-      if (existingUser) return res.status(400).json({ error: "User already exists" });
-  
-      // Hash the password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-  
-      // Create new user
-      const newUser = new User({ fullName, email, password: hashedPassword });
-      await newUser.save();
-  
-      res.status(201).json({ message: "User registered successfully" });
-    } catch (err) {
-      res.status(500).json({ error: "Server error" });
-    }
+  const { fullName, email, password } = req.body;
+
+  try {
+    // Check if the user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: "User already exists" });
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = new User({ fullName, email, password: hashedPassword });
+    await newUser.save();
+
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ Dashboard Route (Protected - Requires Authentication)
+router.get("/dashboard", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select("-password"); // Exclude password field
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({ message: "Welcome to your dashboard!", user });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 module.exports = router;

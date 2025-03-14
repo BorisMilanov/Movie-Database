@@ -26,9 +26,10 @@ const Register = () => {
     e.preventDefault();
     try {
       await register(fullName, email, password);
-      navigate("/login");
+      navigate("/register");
     } catch (err) {
-      setError("Registration failed. Try again.");
+      const errorMessage = err instanceof Error ? err.message : "Registration failed. Try again.";
+      setError(errorMessage);
     }
   };
 

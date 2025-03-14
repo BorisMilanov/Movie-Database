@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
-
+const dashboardRoutes = require("./routes/dashboardRoutes")
 const app = express();
 
 // Middleware
@@ -13,8 +13,8 @@ app.use(cors());
 
 // Routes
 app.use("/api/auth", authRoutes);
-
-// Connect to MongoDB
+// app.use("/api/dashboard", dashboardRoutes);
+// // Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
