@@ -1,6 +1,7 @@
-import { createContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, ReactNode, useCallback } from "react";
 import axios from "axios";
-import { AuthContextType, User } from "../types/User";
+import { User, AuthContextType } from "../types/User";
+import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -11,15 +12,20 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>(localStorage.getItem("token") || "");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (token) {
-      fetchUser(); // Ensure we fetch the user when a token exists
-    }
-  }, [token]);
+  const clearAuth = useCallback(() => {
+    setUser(null);
+    setToken("");
+    localStorage.removeItem("token");
+  }, []);
 
-  // ✅ Fetch user details when token is available
-  const fetchUser = async () => {
+  const logout = useCallback(() => {
+    clearAuth();
+    navigate("/");
+  }, [clearAuth, navigate]);
+
+  const fetchUser = useCallback(async () => {
     try {
       const res = await axios.get<{ user: User }>("http://localhost:5000/api/auth/dashboard", {
         headers: { Authorization: `Bearer ${token}` },
@@ -27,28 +33,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(res.data.user);
     } catch (error) {
       console.error("Failed to fetch user data:", error);
-      logout();
+      clearAuth();
+      navigate("/");
     }
-  };
+  }, [token, clearAuth, navigate]);
 
-  // ✅ Login Function - Fetch user after successful login
+  useEffect(() => {
+    if (token) {
+      fetchUser();
+    }
+  }, [token, fetchUser]);
+
   const login = async (email: string, password: string) => {
-    const res = await axios.post<{ token: string; user: User }>("http://localhost:5000/api/auth/login", { email, password });
+    const res = await axios.post<{ token: string; user: User }>(
+      "http://localhost:5000/api/auth/login",
+      { email, password }
+    );
     setToken(res.data.token);
     localStorage.setItem("token", res.data.token);
     setUser(res.data.user);
   };
 
-  // ✅ Register Function
   const register = async (fullName: string, email: string, password: string) => {
-    await axios.post("http://localhost:5000/api/auth/register", { fullName, email, password });
-  };
-
-  // ✅ Logout Function
-  const logout = () => {
-    setUser(null);
-    setToken("");
-    localStorage.removeItem("token");
+    await axios.post("http://localhost:5000/api/auth/register", {
+      fullName,
+      email,
+      password,
+    });
   };
 
   return (

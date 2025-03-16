@@ -1,20 +1,24 @@
 import { Navigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { JSX } from "react/jsx-runtime";
+import { AuthContextType } from "../types/User";
 
 interface PrivateRouteProps {
-  children: JSX.Element;
+  children: React.ReactNode;
 }
 
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
-  const auth = useContext(AuthContext);
+  const auth = useContext<AuthContextType | undefined>(AuthContext);
 
-  if (auth?.user === undefined) {
-    return <div>Loading...</div>; // Prevents flashing issues
+  if (!auth) {
+    throw new Error("AuthContext not available");
   }
 
-  return auth?.user ? children : <Navigate to="/login" />;
+  if (!auth.user) {
+    return <Navigate to="/login" />;
+  }
+
+  return <>{children}</>;
 };
 
 export default PrivateRoute;
