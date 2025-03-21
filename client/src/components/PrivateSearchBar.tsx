@@ -4,19 +4,13 @@ import { Input, Card, Row, Col, Spin, Button, message } from "antd";
 
 const API_KEY = "bb35d518f70387bdd467cd82e149adff"; // Your TMDb API Key
 const BASE_URL = "https://api.themoviedb.org/3/search/movie";
-
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string | null;
-  vote_average: number;
-}
+import { Movie } from "../api/api";
 
 const PrivateSearchBar = () => {
   const [query, setQuery] = useState<string>("");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [watchlist, setWatchlist] = useState<Movie[]>([]); // Store added movies
+  const [watchlist, setWatchlist] = useState<Movie[]>([]); 
 
   const handleSearch = async () => {
     if (!query) return;
@@ -37,15 +31,28 @@ const PrivateSearchBar = () => {
     }
   };
 
-  const handleAddToWatchlist = (movie: Movie) => {
-    // Prevent adding duplicate movies
-    if (watchlist.some((item) => item.id === movie.id)) {
-      message.warning("Movie is already in your watchlist!");
-      return;
-    }
+  const handleAddToWatchlist = async (movie: Movie) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No token found');
+      
+      // Check if movie is already in watchlist
+      if (watchlist.some(m => m.id === movie.id)) {
+        message.warning(`${movie.title} is already in your watchlist!`);
+        return;
+      }
 
-    setWatchlist([...watchlist, movie]);
-    message.success(`${movie.title} added to watchlist!`);
+      await axios.post('http://localhost:5000/api/watchlist/add', movie, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local watchlist state
+      setWatchlist(prev => [...prev, movie]);
+      message.success(`${movie.title} added to watchlist!`);
+    } catch (error) {
+      console.error('Failed to add movie to watchlist', error);
+      message.error('Failed to add movie to watchlist');
+    }
   };
 
   return (
@@ -76,8 +83,13 @@ const PrivateSearchBar = () => {
               }
             >
               <Card.Meta title={movie.title} description={`⭐ ${movie.vote_average}`} />
-              <Button type="primary" onClick={() => handleAddToWatchlist(movie)} style={{ marginTop: "10px", width: "100%" }}>
-                ➕ Add to Watchlist
+              <Button 
+                type="primary" 
+                onClick={() => handleAddToWatchlist(movie)} 
+                style={{ marginTop: "10px", width: "100%" }}
+                disabled={watchlist.some(m => m.id === movie.id)}
+              >
+                {watchlist.some(m => m.id === movie.id) ? '✅ In Watchlist' : '➕ Add to Watchlist'}
               </Button>
             </Card>
           </Col>
